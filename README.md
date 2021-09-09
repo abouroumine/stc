@@ -1,4 +1,4 @@
-#AUTHORIZATION SERVICE
+# AUTHORIZATION SERVICE
 This service will authenticate the user according to its specific role and return HTTP status code 200 whent he user is authorized and a JWT token with a configurable validity. It should return 401 for unauthorized users.
 
       POST /user/signup
