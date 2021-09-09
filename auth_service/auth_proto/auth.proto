@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package space_traffic_control;
+
+option go_package = "abouroumine.com/stc/auth_service;auth_service";
+
+service AuthenticationInfo {
+  rpc login(UserAuth) returns (JWTResponse) {}
+  rpc checkInfoDB(UserAuth) returns (UserAuth) {}
+}
+
+message UserAuth {
+  string username = 1;
+  string password = 2;
+  string role = 3;
+  string userid = 4;
+}
+
+message JWTResponse {
+  string token = 1;
+  string exp = 2;
+}

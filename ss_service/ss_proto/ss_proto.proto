@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package space_traffic_control;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "abouroumine.com/stc/ss_server;ss_server";
+
+service ShippingStation {
+  rpc requestLand(google.protobuf.Int32Value) returns (Command) {}
+  rpc landing(google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+}
+
+message Command {
+  string command = 1;
+  int32 duration = 2;
+  string dockingStation = 3;
+}

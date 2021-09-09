@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package space_traffic_control;
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "abouroumine.com/stc/cc_service;cc_service";
+
+service CCService {
+  rpc stationRegister(Station) returns(Station) {}
+  rpc allStations(google.protobuf.StringValue) returns(Stations) {}
+  rpc shipRegister(google.protobuf.FloatValue) returns(google.protobuf.Empty) {}
+  rpc allShips(google.protobuf.Empty) returns(Ships) {}
+}
+
+message Station {
+  string id = 1;
+  float capacity = 2;
+  float usedCapacity = 3;
+  repeated Dock docks = 4;
+  bool isRegistered = 5;
+}
+
+message Stations {
+  repeated Station stations = 1;
+}
+
+message Ship {
+  string id = 1;
+  string status = 2;
+  float weight = 3;
+  int32 time = 4;
+}
+
+message Ships {
+  repeated Ship ships = 1;
+}
+
+message Dock {
+  string id = 1;
+  int32 numDockingPorts = 2;
+  int32 occupied = 3;
+  float weight = 4;
+}
