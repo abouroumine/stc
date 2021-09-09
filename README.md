@@ -1,4 +1,5 @@
 # AUTHORIZATION SERVICE
+
 This service will authenticate the user according to its specific role and return HTTP status code 200 whent he user is authorized and a JWT token with a configurable validity. It should return 401 for unauthorized users.
 
       POST /user/signup
@@ -10,9 +11,11 @@ This Api should create a user with the specified role. A user with role Station 
 This Api should authenticate the user and return a JWT token - the token should have the username, userid (from database) and the user role.
 
 # DATABASE SERVICE
+
 The system will require databases to store users, stations, command center details, etc. None of the other three microservice should communicate directly with the database, but use this service to talk to the database instead.
 
 # CENTRAL COMMAND SERVICE
+
 All shipping stations and spaceships must register themselves with the central command. An unregistered shipping station can not accept spaceships, and an unregistered spaceship can not land on a shipping station. The central command has services to find out the current status of shipping stations and spaceships.
 
       POST /centcom/station/register
@@ -40,6 +43,7 @@ Only users with role Ship may call this Api, any other role should result in 400
 the role Command is required to call this Api.
 
 # SHIPPING STATION SERVICE
+
 Spaceships need to communicate with this Api to land on the shipping station.
 
       POST /shipping-station/request-landing
