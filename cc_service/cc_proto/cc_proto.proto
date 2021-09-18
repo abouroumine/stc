@@ -8,9 +8,17 @@ option go_package = "abouroumine.com/stc/cc_service;cc_service";
 
 service CCService {
   rpc stationRegister(Station) returns(Station) {}
-  rpc allStations(google.protobuf.StringValue) returns(Stations) {}
+  rpc shipCCInfo(google.protobuf.Int32Value) returns(Ship) {}
+  rpc allStations(AllStationMsg) returns(Stations) {}
+  rpc allStationsNoCondition(google.protobuf.Empty) returns(Stations) {}
+  rpc allStationsWithCondition(google.protobuf.FloatValue) returns(Stations) {}
   rpc shipRegister(google.protobuf.FloatValue) returns(google.protobuf.Empty) {}
   rpc allShips(google.protobuf.Empty) returns(Ships) {}
+}
+
+message AllStationMsg {
+  string role = 1;
+  string idShip = 2;
 }
 
 message Station {

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SSAddress = "localhost:50052"
+	SSAddress = ":50052"
 	SSCert    = "./cert/ss_server.crt"
 	SSKey     = "./cert/ss_server.key"
 )

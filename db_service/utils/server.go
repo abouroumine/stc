@@ -28,13 +28,16 @@ func (s *Server) StationRegister(ctx context.Context, in *pb.Station) (*pb.Stati
 	return s.RegisterStation(in)
 }
 
-func (s *Server) AllStations(ctx context.Context, in *wrappers.StringValue) (*pb.Stations, error) {
-	role := in.Value
-	if role == string(COMMAND) {
-		return s.GetAllStationsForCommand()
-	} else {
-		return s.GetAllStationsForShip(&role)
-	}
+func (s *Server) ShipCCInfo(ctx context.Context, in *wrappers.Int32Value) (*pb.Ship, error) {
+	return s.GetShipInfo(in)
+}
+
+func (s *Server) AllStationsNoCondition(ctx context.Context, in *emptypb.Empty) (*pb.Stations, error) {
+	return s.GetAllStationsForCommand()
+}
+
+func (s *Server) AllStationsWithCondition(ctx context.Context, in *wrappers.FloatValue) (*pb.Stations, error) {
+	return s.GetAllStationsForShip(in)
 }
 
 func (s *Server) ShipRegister(ctx context.Context, in *wrappers.FloatValue) (*emptypb.Empty, error) {
@@ -45,10 +48,14 @@ func (s *Server) AllShips(ctx context.Context, in *emptypb.Empty) (*pb.Ships, er
 	return s.GetAllShips(in)
 }
 
-func (s *Server) RequestLand(ctx context.Context, in *wrapperspb.Int32Value) (*pb.Command, error) {
-	return s.LandingRequest(in)
+func (s *Server) ShipInfo(ctx context.Context, in *wrappers.Int32Value) (*pb.Ship, error) {
+	return s.GetShipInfo(in)
 }
 
-func (s *Server) Landing(ctx context.Context, in *wrapperspb.Int32Value) (*emptypb.Empty, error) {
-	return s.TheLanding(in)
+func (s *Server) StationInfo(ctx context.Context, in *wrappers.Int32Value) (*pb.Station, error) {
+	return s.GetStationInfo(in)
+}
+
+func (s *Server) UpdateTheLandData(ctx context.Context, in *pb.UpdateLandData) (*emptypb.Empty, error) {
+	return s.TheLandUpdate(in)
 }

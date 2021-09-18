@@ -1,0 +1,69 @@
+version: '3'
+services:
+  api:
+    image: stc-api-service
+    build: ./api/
+    container_name: api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - "SS_SERVICE_ADDR=ss_service:50052"
+      - "SS_SERVICE_HOSTNAME=ss_service"
+      - "CC_SERVICE_ADDR=cc_service:50051"
+      - "CC_SERVICE_HOSTNAME=cc_service"
+      - "DB_SERVICE_ADDR=db_service:50053"
+      - "DB_SERVICE_HOSTNAME=db_service"
+      - "AUTH_SERVICE_ADDR=auth_service:50050"
+      - "AUTH_SERVICE_HOSTNAME=auth_service"
+  auth_service:
+    image: stc-auth-service
+    build: ./auth_service/
+    container_name: auth_service
+    restart: always
+    ports:
+      - "50050:50050"
+    environment:
+      - "DB_SERVICE_ADDR=db_service:50053"
+      - "DB_SERVICE_HOSTNAME=db_service"
+  cc_service:
+    image: stc-cc-service
+    build: ./cc_service/
+    container_name: cc_service
+    restart: always
+    ports:
+      - "50051:50051"
+    environment:
+      - "DB_SERVICE_ADDR=db_service:50053"
+      - "DB_SERVICE_HOSTNAME=db_service"
+  ss_service:
+    image: stc-ss-service
+    build: ./ss_service/
+    container_name: ss_service
+    restart: always
+    ports:
+      - "50052:50052"
+    environment:
+      - "DB_SERVICE_ADDR=db_service:50053"
+      - "DB_SERVICE_HOSTNAME=db_service"
+  db_service:
+    image: stc-db-service
+    build: ./db_service/
+    container_name: db_service
+    restart: always
+    ports:
+      - "50053:50053"
+    environment:
+      - "DB_HOSTNAME=stc_db:5432"
+  stc_db:
+    image: "postgres:13.4"
+    container_name: stc_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_MULTIPLE_DATABASES=stc_auth,stc_cc
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./stc.sql:/docker-entrypoint-initdb.d/stc.sql

@@ -7,17 +7,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"os"
+	"strconv"
 	"time"
 )
 
 const (
-	DBAddress = "localhost:50053"
-	DbCert    = "./cert/db_server.crt"
-	HOSTNAME  = "localhost"
+	DbCert = "./cert/db_server.crt"
 )
 
 func (s *Server) RegisterStation(in *pb.Station) (*pb.Station, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *Server) RegisterStation(in *pb.Station) (*pb.Station, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,8 @@ func (s *Server) RegisterStation(in *pb.Station) (*pb.Station, error) {
 	return newStation, nil
 }
 
-func (s *Server) GetAllStations(role *wrappers.StringValue) (*pb.Stations, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+func (s *Server) GetAllStations(in *pb.AllStationMsg) (*pb.Stations, error) {
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *Server) GetAllStations(role *wrappers.StringValue) (*pb.Stations, error
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,22 @@ func (s *Server) GetAllStations(role *wrappers.StringValue) (*pb.Stations, error
 	c := pb.NewCCServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, err := c.AllStations(ctx, role)
+	if in.Role == string(COMMAND) {
+		result, err := c.AllStationsNoCondition(ctx, &emptypb.Empty{})
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+	id, err := strconv.Atoi(in.IdShip)
+	if err != nil {
+		return nil, err
+	}
+	ship, err := c.ShipCCInfo(ctx, &wrappers.Int32Value{Value: int32(id)})
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.AllStationsWithCondition(ctx, &wrappers.FloatValue{Value: ship.Weight})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +85,7 @@ func (s *Server) GetAllStations(role *wrappers.StringValue) (*pb.Stations, error
 }
 
 func (s *Server) RegisterShip(in *wrappers.FloatValue) (*emptypb.Empty, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +94,7 @@ func (s *Server) RegisterShip(in *wrappers.FloatValue) (*emptypb.Empty, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +112,7 @@ func (s *Server) RegisterShip(in *wrappers.FloatValue) (*emptypb.Empty, error) {
 }
 
 func (s *Server) GetAllShips(in *emptypb.Empty) (*pb.Ships, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +121,7 @@ func (s *Server) GetAllShips(in *emptypb.Empty) (*pb.Ships, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}

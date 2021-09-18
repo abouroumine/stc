@@ -1,8 +1,10 @@
-/*CREATE DATABASE stc-users;*/
-create table users (
-    id serial primary key not null,
-    username varchar(255) not null unique,
-    password varchar(255) not null,
-    role varchar(255) not null
-);
-insert into users (username, password, role) values ('ayoub', 'ayoub1111', 'Command');
+CREATE
+DATABASE stc_auth;
+CREATE
+DATABASE stc_cc;
+CREATE
+USER ayoubbouroumine WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE
+"stc_auth" to ayoubbouroumine;
+GRANT ALL PRIVILEGES  ON DATABASE
+"stc_cc" to ayoubbouroumine;

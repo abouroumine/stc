@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	CCAddress = "localhost:50051"
+	CCAddress = ":50051"
 	CCCert    = "./cert/cc_server.crt"
 	CCKey     = "./cert/cc_server.key"
 )

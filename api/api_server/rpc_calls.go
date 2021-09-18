@@ -7,23 +7,19 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"os"
 	"time"
 )
 
 const (
-	AuthAddress = "localhost:50050"
-	CCAddress   = "localhost:50051"
-	SSAddress   = "localhost:50052"
-	DBAddress   = "localhost:50053"
-	AuthCert    = "./cert/auth_server.crt"
-	DbCert      = "./cert/db_server.crt"
-	CCCert      = "./cert/cc_server.crt"
-	SSCert      = "./cert/ss_server.crt"
-	HOSTNAME    = "localhost"
+	AuthCert = "./cert/auth_server.crt"
+	DbCert   = "./cert/db_server.crt"
+	CCCert   = "./cert/cc_server.crt"
+	SSCert   = "./cert/ss_server.crt"
 )
 
 func (s *Server) CheckLogIn(userInfo *pb.UserAuth) (*pb.JWTResponse, error) {
-	creds, err := credentials.NewClientTLSFromFile(AuthCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(AuthCert, os.Getenv("AUTH_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +28,7 @@ func (s *Server) CheckLogIn(userInfo *pb.UserAuth) (*pb.JWTResponse, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(AuthAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("AUTH_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +47,7 @@ func (s *Server) CheckLogIn(userInfo *pb.UserAuth) (*pb.JWTResponse, error) {
 }
 
 func (s *Server) AddNewUser(user *pb.UserAuth) (*bool, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +56,7 @@ func (s *Server) AddNewUser(user *pb.UserAuth) (*bool, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +73,7 @@ func (s *Server) AddNewUser(user *pb.UserAuth) (*bool, error) {
 }
 
 func (s *Server) RegisterStation(station *pb.Station) (*pb.Station, error) {
-	creds, err := credentials.NewClientTLSFromFile(CCCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(CCCert, os.Getenv("CC_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +82,7 @@ func (s *Server) RegisterStation(station *pb.Station) (*pb.Station, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(CCAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("CC_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +99,8 @@ func (s *Server) RegisterStation(station *pb.Station) (*pb.Station, error) {
 	return newStation, nil
 }
 
-func (s *Server) GetAllStations(role *string) (*pb.Stations, error) {
-	creds, err := credentials.NewClientTLSFromFile(CCCert, HOSTNAME)
+func (s *Server) GetAllStations(role, shipId *string) (*pb.Stations, error) {
+	creds, err := credentials.NewClientTLSFromFile(CCCert, os.Getenv("CC_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +109,7 @@ func (s *Server) GetAllStations(role *string) (*pb.Stations, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(CCAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("CC_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +118,7 @@ func (s *Server) GetAllStations(role *string) (*pb.Stations, error) {
 	c := pb.NewCCServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, err := c.AllStations(ctx, &wrappers.StringValue{Value: *role})
+	result, err := c.AllStations(ctx, &pb.AllStationMsg{IdShip: *shipId, Role: *role})
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +126,7 @@ func (s *Server) GetAllStations(role *string) (*pb.Stations, error) {
 }
 
 func (s *Server) RegisterShip(in *wrappers.FloatValue) error {
-	creds, err := credentials.NewClientTLSFromFile(CCCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(CCCert, os.Getenv("CC_SERVICE_HOSTNAME"))
 	if err != nil {
 		return err
 	}
@@ -139,7 +135,7 @@ func (s *Server) RegisterShip(in *wrappers.FloatValue) error {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(CCAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("CC_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return err
 	}
@@ -156,7 +152,7 @@ func (s *Server) RegisterShip(in *wrappers.FloatValue) error {
 }
 
 func (s *Server) GetAllShips() (*pb.Ships, error) {
-	creds, err := credentials.NewClientTLSFromFile(CCCert, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(CCCert, os.Getenv("CC_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +161,7 @@ func (s *Server) GetAllShips() (*pb.Ships, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(CCAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("CC_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,8 +177,8 @@ func (s *Server) GetAllShips() (*pb.Ships, error) {
 	return result, nil
 }
 
-func (s *Server) LandingRequest(value *wrappers.Int32Value) (*pb.Command, error) {
-	creds, err := credentials.NewClientTLSFromFile(SSCert, HOSTNAME)
+func (s *Server) LandingRequest(value *pb.RequestDemand) (*pb.Command, error) {
+	creds, err := credentials.NewClientTLSFromFile(SSCert, os.Getenv("SS_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +186,7 @@ func (s *Server) LandingRequest(value *wrappers.Int32Value) (*pb.Command, error)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(creds),
 	}
-	conn, err := grpc.Dial(SSAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("SS_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -206,8 +202,8 @@ func (s *Server) LandingRequest(value *wrappers.Int32Value) (*pb.Command, error)
 	return result, nil
 }
 
-func (s *Server) TheLanding(value *wrappers.Int32Value) (*emptypb.Empty, error) {
-	creds, err := credentials.NewClientTLSFromFile(SSCert, HOSTNAME)
+func (s *Server) TheLanding(value *pb.RequestDemand) (*emptypb.Empty, error) {
+	creds, err := credentials.NewClientTLSFromFile(SSCert, os.Getenv("SS_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +211,7 @@ func (s *Server) TheLanding(value *wrappers.Int32Value) (*emptypb.Empty, error) 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(creds),
 	}
-	conn, err := grpc.Dial(SSAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("SS_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}

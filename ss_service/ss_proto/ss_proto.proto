@@ -8,12 +8,54 @@ import "google/protobuf/empty.proto";
 option go_package = "abouroumine.com/stc/ss_server;ss_server";
 
 service ShippingStation {
-  rpc requestLand(google.protobuf.Int32Value) returns (Command) {}
-  rpc landing(google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+  rpc stationInfo(google.protobuf.Int32Value) returns(Station) {}
+  rpc shipInfo(google.protobuf.Int32Value) returns(Ship) {}
+  rpc updateTheLandData(UpdateLandData) returns (google.protobuf.Empty) {}
+  rpc requestLand(RequestDemand) returns (Command) {}
+  rpc landing(RequestDemand) returns (google.protobuf.Empty) {}
 }
 
 message Command {
   string command = 1;
   int32 duration = 2;
   string dockingStation = 3;
+}
+
+message Station {
+  string id = 1;
+  float capacity = 2;
+  float usedCapacity = 3;
+  repeated Dock docks = 4;
+  bool isRegistered = 5;
+}
+
+message Dock {
+  string id = 1;
+  int32 numDockingPorts = 2;
+  int32 occupied = 3;
+  float weight = 4;
+  repeated Ship ships = 5;
+}
+
+message Ship {
+  string id = 1;
+  string status = 2;
+  float weight = 3;
+  int32 time = 4;
+  int32 startTime = 5;
+}
+
+message UpdateLandData {
+  string idShip = 1;
+  string idDock = 2;
+  string idStation = 3;
+  float weight = 4;
+  bool addition = 5;
+  int32 time = 6;
+}
+
+message RequestDemand {
+  int32 time = 1;
+  string idShip = 2;
+  string idStation = 3;
 }

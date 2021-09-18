@@ -143,7 +143,7 @@ var AuthenticationInfo_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CCServiceClient interface {
 	StationRegister(ctx context.Context, in *Station, opts ...grpc.CallOption) (*Station, error)
-	AllStations(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Stations, error)
+	AllStations(ctx context.Context, in *AllStationMsg, opts ...grpc.CallOption) (*Stations, error)
 	ShipRegister(ctx context.Context, in *wrapperspb.FloatValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AllShips(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Ships, error)
 }
@@ -165,7 +165,7 @@ func (c *cCServiceClient) StationRegister(ctx context.Context, in *Station, opts
 	return out, nil
 }
 
-func (c *cCServiceClient) AllStations(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Stations, error) {
+func (c *cCServiceClient) AllStations(ctx context.Context, in *AllStationMsg, opts ...grpc.CallOption) (*Stations, error) {
 	out := new(Stations)
 	err := c.cc.Invoke(ctx, "/space_traffic_control.CCService/allStations", in, out, opts...)
 	if err != nil {
@@ -197,7 +197,7 @@ func (c *cCServiceClient) AllShips(ctx context.Context, in *emptypb.Empty, opts 
 // for forward compatibility
 type CCServiceServer interface {
 	StationRegister(context.Context, *Station) (*Station, error)
-	AllStations(context.Context, *wrapperspb.StringValue) (*Stations, error)
+	AllStations(context.Context, *AllStationMsg) (*Stations, error)
 	ShipRegister(context.Context, *wrapperspb.FloatValue) (*emptypb.Empty, error)
 	AllShips(context.Context, *emptypb.Empty) (*Ships, error)
 	mustEmbedUnimplementedCCServiceServer()
@@ -210,7 +210,7 @@ type UnimplementedCCServiceServer struct {
 func (UnimplementedCCServiceServer) StationRegister(context.Context, *Station) (*Station, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StationRegister not implemented")
 }
-func (UnimplementedCCServiceServer) AllStations(context.Context, *wrapperspb.StringValue) (*Stations, error) {
+func (UnimplementedCCServiceServer) AllStations(context.Context, *AllStationMsg) (*Stations, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllStations not implemented")
 }
 func (UnimplementedCCServiceServer) ShipRegister(context.Context, *wrapperspb.FloatValue) (*emptypb.Empty, error) {
@@ -251,7 +251,7 @@ func _CCService_StationRegister_Handler(srv interface{}, ctx context.Context, de
 }
 
 func _CCService_AllStations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.StringValue)
+	in := new(AllStationMsg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func _CCService_AllStations_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/space_traffic_control.CCService/allStations",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CCServiceServer).AllStations(ctx, req.(*wrapperspb.StringValue))
+		return srv.(CCServiceServer).AllStations(ctx, req.(*AllStationMsg))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -336,8 +336,8 @@ var CCService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShippingStationClient interface {
-	RequestLand(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*Command, error)
-	Landing(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RequestLand(ctx context.Context, in *RequestDemand, opts ...grpc.CallOption) (*Command, error)
+	Landing(ctx context.Context, in *RequestDemand, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type shippingStationClient struct {
@@ -348,7 +348,7 @@ func NewShippingStationClient(cc grpc.ClientConnInterface) ShippingStationClient
 	return &shippingStationClient{cc}
 }
 
-func (c *shippingStationClient) RequestLand(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*Command, error) {
+func (c *shippingStationClient) RequestLand(ctx context.Context, in *RequestDemand, opts ...grpc.CallOption) (*Command, error) {
 	out := new(Command)
 	err := c.cc.Invoke(ctx, "/space_traffic_control.ShippingStation/requestLand", in, out, opts...)
 	if err != nil {
@@ -357,7 +357,7 @@ func (c *shippingStationClient) RequestLand(ctx context.Context, in *wrapperspb.
 	return out, nil
 }
 
-func (c *shippingStationClient) Landing(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *shippingStationClient) Landing(ctx context.Context, in *RequestDemand, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/space_traffic_control.ShippingStation/landing", in, out, opts...)
 	if err != nil {
@@ -370,8 +370,8 @@ func (c *shippingStationClient) Landing(ctx context.Context, in *wrapperspb.Int3
 // All implementations must embed UnimplementedShippingStationServer
 // for forward compatibility
 type ShippingStationServer interface {
-	RequestLand(context.Context, *wrapperspb.Int32Value) (*Command, error)
-	Landing(context.Context, *wrapperspb.Int32Value) (*emptypb.Empty, error)
+	RequestLand(context.Context, *RequestDemand) (*Command, error)
+	Landing(context.Context, *RequestDemand) (*emptypb.Empty, error)
 	mustEmbedUnimplementedShippingStationServer()
 }
 
@@ -379,10 +379,10 @@ type ShippingStationServer interface {
 type UnimplementedShippingStationServer struct {
 }
 
-func (UnimplementedShippingStationServer) RequestLand(context.Context, *wrapperspb.Int32Value) (*Command, error) {
+func (UnimplementedShippingStationServer) RequestLand(context.Context, *RequestDemand) (*Command, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestLand not implemented")
 }
-func (UnimplementedShippingStationServer) Landing(context.Context, *wrapperspb.Int32Value) (*emptypb.Empty, error) {
+func (UnimplementedShippingStationServer) Landing(context.Context, *RequestDemand) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Landing not implemented")
 }
 func (UnimplementedShippingStationServer) mustEmbedUnimplementedShippingStationServer() {}
@@ -399,7 +399,7 @@ func RegisterShippingStationServer(s grpc.ServiceRegistrar, srv ShippingStationS
 }
 
 func _ShippingStation_RequestLand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.Int32Value)
+	in := new(RequestDemand)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -411,13 +411,13 @@ func _ShippingStation_RequestLand_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/space_traffic_control.ShippingStation/requestLand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShippingStationServer).RequestLand(ctx, req.(*wrapperspb.Int32Value))
+		return srv.(ShippingStationServer).RequestLand(ctx, req.(*RequestDemand))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ShippingStation_Landing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.Int32Value)
+	in := new(RequestDemand)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -429,7 +429,7 @@ func _ShippingStation_Landing_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/space_traffic_control.ShippingStation/landing",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShippingStationServer).Landing(ctx, req.(*wrapperspb.Int32Value))
+		return srv.(ShippingStationServer).Landing(ctx, req.(*RequestDemand))
 	}
 	return interceptor(ctx, in, info, handler)
 }

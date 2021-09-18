@@ -7,17 +7,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"os"
+	"strconv"
 	"time"
 )
 
 const (
-	DBAddress = "localhost:50053"
-	DbCert    = "./cert/db_server.crt"
-	HOSTNAME  = "localhost"
+	DbCert = "./cert/db_server.crt"
 )
 
-func (s *Server) LandingRequest(in *wrappers.Int32Value) (*pb.Command, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+func (s *Server) LandingRequest(in *pb.RequestDemand) (*pb.Command, error) {
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *Server) LandingRequest(in *wrappers.Int32Value) (*pb.Command, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -36,15 +36,40 @@ func (s *Server) LandingRequest(in *wrappers.Int32Value) (*pb.Command, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	newStation, err := c.RequestLand(ctx, in)
+	// Here we start
+	stationId, err := strconv.Atoi(in.IdStation)
 	if err != nil {
 		return nil, err
 	}
-	return newStation, nil
+	station, err := c.StationInfo(ctx, &wrappers.Int32Value{Value: int32(stationId)})
+	if err != nil {
+		return nil, err
+	}
+
+	shipId, err := strconv.Atoi(in.IdShip)
+	if err != nil {
+		return nil, err
+	}
+	ship, err := c.ShipInfo(ctx, &wrappers.Int32Value{Value: int32(shipId)})
+	if err != nil {
+		return nil, err
+	}
+
+	if station.Capacity < ship.Weight {
+		return nil, nil
+	}
+
+	needNotToWait := true
+	if station.Capacity-station.UsedCapacity >= ship.Weight {
+		return s.ToDock(station.Docks, &needNotToWait)
+	} else {
+		needNotToWait = false
+		return s.ToDock(station.Docks, &needNotToWait)
+	}
 }
 
-func (s *Server) TheLanding(in *wrappers.Int32Value) (*emptypb.Empty, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCert, HOSTNAME)
+func (s *Server) TheLanding(in *pb.RequestDemand) (*emptypb.Empty, error) {
+	creds, err := credentials.NewClientTLSFromFile(DbCert, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +78,7 @@ func (s *Server) TheLanding(in *wrappers.Int32Value) (*emptypb.Empty, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +88,23 @@ func (s *Server) TheLanding(in *wrappers.Int32Value) (*emptypb.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	newStation, err := c.Landing(ctx, in)
+	// Here we start
+	stationId, err := strconv.Atoi(in.IdStation)
 	if err != nil {
 		return nil, err
 	}
-	return newStation, nil
+	station, err := c.StationInfo(ctx, &wrappers.Int32Value{Value: int32(stationId)})
+	if err != nil {
+		return nil, err
+	}
+
+	shipId, err := strconv.Atoi(in.IdShip)
+	if err != nil {
+		return nil, err
+	}
+	ship, err := c.ShipInfo(ctx, &wrappers.Int32Value{Value: int32(shipId)})
+	if err != nil {
+		return nil, err
+	}
+	return s.ToLand(c, ctx, station, ship, int(in.Time))
 }

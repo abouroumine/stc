@@ -4,23 +4,22 @@ import (
 	m "abouroumine.com/stc/db_service/models"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"os"
 )
 
 const (
-	user         = "ayoubbouroumine"
-	passwordAuth = ""
-	passwordCC   = ""
-	host         = "localhost:5432"
-	dbNameAuth   = "stc_auth"
-	dbNameCC     = "stc_cc"
+	user       = "ayoubbouroumine"
+	password   = "password"
+	dbNameAuth = "stc_auth"
+	dbNameCC   = "stc_cc"
 )
 
 func (s *Server) ConnectPostgresSQLToAuthDB() {
 	s.DB = pg.Connect(&pg.Options{
 		User:     user,
-		Password: passwordAuth,
+		Password: password,
 		Database: dbNameAuth,
-		Addr:     host,
+		Addr:     os.Getenv("DB_HOSTNAME"),
 	})
 	s.CreateUserAuthTables()
 }
@@ -28,15 +27,17 @@ func (s *Server) ConnectPostgresSQLToAuthDB() {
 func (s *Server) ConnectPostgresSQLToCCDB() {
 	s.DB = pg.Connect(&pg.Options{
 		User:     user,
-		Password: passwordCC,
+		Password: password,
 		Database: dbNameCC,
-		Addr:     host,
+		Addr:     os.Getenv("DB_HOSTNAME"),
 	})
 	s.CreateCCTables()
 }
 
 func (s *Server) CreateTable(model interface{}) error {
-	opts := &orm.CreateTableOptions{}
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
 	err := s.DB.Model(model).CreateTable(opts)
 	return err
 }
@@ -55,7 +56,6 @@ func (s *Server) CreateUserAuthTables() {
 }
 
 func (s *Server) CreateCCTables() {
-	_ = s.CreateTable(&m.Command{})
 	_ = s.CreateTable(&m.Dock{})
 	_ = s.CreateTable(&m.Station{})
 	_ = s.CreateTable(&m.Ship{})

@@ -21,7 +21,10 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CCServiceClient interface {
 	StationRegister(ctx context.Context, in *Station, opts ...grpc.CallOption) (*Station, error)
-	AllStations(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Stations, error)
+	ShipCCInfo(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*Ship, error)
+	AllStations(ctx context.Context, in *AllStationMsg, opts ...grpc.CallOption) (*Stations, error)
+	AllStationsNoCondition(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stations, error)
+	AllStationsWithCondition(ctx context.Context, in *wrapperspb.FloatValue, opts ...grpc.CallOption) (*Stations, error)
 	ShipRegister(ctx context.Context, in *wrapperspb.FloatValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AllShips(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Ships, error)
 }
@@ -43,9 +46,36 @@ func (c *cCServiceClient) StationRegister(ctx context.Context, in *Station, opts
 	return out, nil
 }
 
-func (c *cCServiceClient) AllStations(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Stations, error) {
+func (c *cCServiceClient) ShipCCInfo(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*Ship, error) {
+	out := new(Ship)
+	err := c.cc.Invoke(ctx, "/space_traffic_control.CCService/shipCCInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cCServiceClient) AllStations(ctx context.Context, in *AllStationMsg, opts ...grpc.CallOption) (*Stations, error) {
 	out := new(Stations)
 	err := c.cc.Invoke(ctx, "/space_traffic_control.CCService/allStations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cCServiceClient) AllStationsNoCondition(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stations, error) {
+	out := new(Stations)
+	err := c.cc.Invoke(ctx, "/space_traffic_control.CCService/allStationsNoCondition", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cCServiceClient) AllStationsWithCondition(ctx context.Context, in *wrapperspb.FloatValue, opts ...grpc.CallOption) (*Stations, error) {
+	out := new(Stations)
+	err := c.cc.Invoke(ctx, "/space_traffic_control.CCService/allStationsWithCondition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +105,10 @@ func (c *cCServiceClient) AllShips(ctx context.Context, in *emptypb.Empty, opts 
 // for forward compatibility
 type CCServiceServer interface {
 	StationRegister(context.Context, *Station) (*Station, error)
-	AllStations(context.Context, *wrapperspb.StringValue) (*Stations, error)
+	ShipCCInfo(context.Context, *wrapperspb.Int32Value) (*Ship, error)
+	AllStations(context.Context, *AllStationMsg) (*Stations, error)
+	AllStationsNoCondition(context.Context, *emptypb.Empty) (*Stations, error)
+	AllStationsWithCondition(context.Context, *wrapperspb.FloatValue) (*Stations, error)
 	ShipRegister(context.Context, *wrapperspb.FloatValue) (*emptypb.Empty, error)
 	AllShips(context.Context, *emptypb.Empty) (*Ships, error)
 	mustEmbedUnimplementedCCServiceServer()
@@ -88,8 +121,17 @@ type UnimplementedCCServiceServer struct {
 func (UnimplementedCCServiceServer) StationRegister(context.Context, *Station) (*Station, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StationRegister not implemented")
 }
-func (UnimplementedCCServiceServer) AllStations(context.Context, *wrapperspb.StringValue) (*Stations, error) {
+func (UnimplementedCCServiceServer) ShipCCInfo(context.Context, *wrapperspb.Int32Value) (*Ship, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShipCCInfo not implemented")
+}
+func (UnimplementedCCServiceServer) AllStations(context.Context, *AllStationMsg) (*Stations, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllStations not implemented")
+}
+func (UnimplementedCCServiceServer) AllStationsNoCondition(context.Context, *emptypb.Empty) (*Stations, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllStationsNoCondition not implemented")
+}
+func (UnimplementedCCServiceServer) AllStationsWithCondition(context.Context, *wrapperspb.FloatValue) (*Stations, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllStationsWithCondition not implemented")
 }
 func (UnimplementedCCServiceServer) ShipRegister(context.Context, *wrapperspb.FloatValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ShipRegister not implemented")
@@ -128,8 +170,26 @@ func _CCService_StationRegister_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CCService_ShipCCInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.Int32Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CCServiceServer).ShipCCInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/space_traffic_control.CCService/shipCCInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CCServiceServer).ShipCCInfo(ctx, req.(*wrapperspb.Int32Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CCService_AllStations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.StringValue)
+	in := new(AllStationMsg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -141,7 +201,43 @@ func _CCService_AllStations_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/space_traffic_control.CCService/allStations",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CCServiceServer).AllStations(ctx, req.(*wrapperspb.StringValue))
+		return srv.(CCServiceServer).AllStations(ctx, req.(*AllStationMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CCService_AllStationsNoCondition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CCServiceServer).AllStationsNoCondition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/space_traffic_control.CCService/allStationsNoCondition",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CCServiceServer).AllStationsNoCondition(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CCService_AllStationsWithCondition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.FloatValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CCServiceServer).AllStationsWithCondition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/space_traffic_control.CCService/allStationsWithCondition",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CCServiceServer).AllStationsWithCondition(ctx, req.(*wrapperspb.FloatValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -194,8 +290,20 @@ var CCService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CCService_StationRegister_Handler,
 		},
 		{
+			MethodName: "shipCCInfo",
+			Handler:    _CCService_ShipCCInfo_Handler,
+		},
+		{
 			MethodName: "allStations",
 			Handler:    _CCService_AllStations_Handler,
+		},
+		{
+			MethodName: "allStationsNoCondition",
+			Handler:    _CCService_AllStationsNoCondition_Handler,
+		},
+		{
+			MethodName: "allStationsWithCondition",
+			Handler:    _CCService_AllStationsWithCondition_Handler,
 		},
 		{
 			MethodName: "shipRegister",

@@ -21,7 +21,9 @@ message UserAuth {
 
 service CCService {
   rpc stationRegister(Station) returns(Station) {}
-  rpc allStations(google.protobuf.StringValue) returns(Stations) {}
+  rpc shipCCInfo(google.protobuf.Int32Value) returns(Ship) {}
+  rpc allStationsNoCondition(google.protobuf.Empty) returns(Stations) {}
+  rpc allStationsWithCondition(google.protobuf.FloatValue) returns(Stations) {}
   rpc shipRegister(google.protobuf.FloatValue) returns(google.protobuf.Empty) {}
   rpc allShips(google.protobuf.Empty) returns(Ships) {}
 }
@@ -43,6 +45,7 @@ message Ship {
   string status = 2;
   float weight = 3;
   int32 time = 4;
+  int32 startTime = 5;
 }
 
 message Ships {
@@ -57,12 +60,22 @@ message Dock {
 }
 
 service ShippingStation {
-  rpc requestLand(google.protobuf.Int32Value) returns (Command) {}
-  rpc landing(google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+  rpc stationInfo(google.protobuf.Int32Value) returns(Station) {}
+  rpc shipInfo(google.protobuf.Int32Value) returns(Ship) {}
+  rpc updateTheLandData(UpdateLandData) returns (google.protobuf.Empty) {}
 }
 
 message Command {
   string command = 1;
   int32 duration = 2;
   string dockingStation = 3;
+}
+
+message UpdateLandData {
+  string idShip = 1;
+  string idDock = 2;
+  string idStation = 3;
+  float weight = 4;
+  bool addition = 5;
+  int32 time = 6;
 }

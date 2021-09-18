@@ -3,7 +3,6 @@ package utils
 import (
 	pb "abouroumine.com/stc/cc_server/cc_proto"
 	"context"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -16,7 +15,7 @@ func (s *Server) StationRegister(ctx context.Context, in *pb.Station) (*pb.Stati
 	return s.RegisterStation(in)
 }
 
-func (s *Server) AllStations(ctx context.Context, in *wrappers.StringValue) (*pb.Stations, error) {
+func (s *Server) AllStations(ctx context.Context, in *pb.AllStationMsg) (*pb.Stations, error) {
 	return s.GetAllStations(in)
 }
 

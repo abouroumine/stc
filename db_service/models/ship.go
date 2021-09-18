@@ -6,4 +6,6 @@ type Ship struct {
 	Status    string
 	Weight    float32
 	Time      int32
+	StartTime int
+	DockId    int
 }

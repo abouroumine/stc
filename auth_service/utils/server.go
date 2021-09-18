@@ -6,14 +6,13 @@ import (
 	"github.com/golang-jwt/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"os"
 	"strconv"
 	"time"
 )
 
 const (
-	DBAddress = "localhost:50053"
-	HOSTNAME  = "localhost"
-	DbCrt     = "./cert/db_server.crt"
+	DbCrt = "./cert/db_server.crt"
 )
 
 type Server struct {
@@ -68,7 +67,7 @@ func (s *Server) Login(ctx context.Context, in *pb.UserAuth) (*pb.JWTResponse, e
 }
 
 func (s *Server) CheckLogIn(userInfo *pb.UserAuth) (*pb.UserAuth, error) {
-	creds, err := credentials.NewClientTLSFromFile(DbCrt, HOSTNAME)
+	creds, err := credentials.NewClientTLSFromFile(DbCrt, os.Getenv("DB_SERVICE_HOSTNAME"))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ func (s *Server) CheckLogIn(userInfo *pb.UserAuth) (*pb.UserAuth, error) {
 		grpc.WithTransportCredentials(creds),
 	}
 
-	conn, err := grpc.Dial(DBAddress, opts...)
+	conn, err := grpc.Dial(os.Getenv("DB_SERVICE_ADDR"), opts...)
 	if err != nil {
 		return nil, err
 	}
