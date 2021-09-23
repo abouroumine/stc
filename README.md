@@ -1,19 +1,3 @@
-# Notice 
-Sorry I forgot to add the Request Method Verifier in the API Service.
-
-    func (s *Server) VerifyMethod(next http.HandlerFunc, method string) http.HandlerFunc {
-        return func(w http.ResponseWriter, r *http.Request) {
-            if r.Method == method {
-                next(w, r)
-            } else {
-                PrepareResponse(w, http.StatusBadRequest, "")
-                return
-            }
-        }
-    }
-
-Now It is added.
-
 # Deployment
 To deploy the Solution all we have to do is use the docker-compose.yml file existing in the project:
 
